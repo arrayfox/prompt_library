@@ -1,5 +1,16 @@
 [
     {
+        "title": "Text Humanizer",
+        "category": "Tool",
+        "description": "Refine your writing to create authentic, concise content that resonates with its intended readers.",
+        "content": "humanizer.md",
+        "tags": [
+            "humanizer",
+            "text"
+        ],
+        "date": "2025-05-28"
+    },
+    {
         "title": "Expert Resume Optimizer and Career Coach",
         "category": "Job",
         "description": "This prompt optimizes the resume while being ATS friendly, it use proven methods.",
@@ -8,7 +19,7 @@
             "resume",
             "career"
         ],
-        "date": "2025-05-29"
+        "date": "2025-05-28"
     },
     {
         "title": "Framework That Optimizes Your LinkedIn Profile & Strategy",
