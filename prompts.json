@@ -1,0 +1,51 @@
+[
+    {
+        "title": "Creative Writing Assistant",
+        "category": "Writing",
+        "description": "Generate creative content with specific tone and style requirements",
+        "content": "You are a creative writing assistant. Help me write [TYPE OF CONTENT] with a [TONE] tone, targeting [AUDIENCE]. The content should be [LENGTH] and include [SPECIFIC REQUIREMENTS]. Please ensure the writing is engaging, original, and maintains consistency throughout.",
+        "tags": [
+            "creative",
+            "writing",
+            "storytelling"
+        ],
+        "date": "2024-05-28"
+    },
+    {
+        "title": "Code Review Expert",
+        "category": "Programming",
+        "description": "Comprehensive code analysis and improvement suggestions",
+        "content": "Please review this code and provide feedback on:\n1. Code quality and best practices\n2. Performance optimizations\n3. Security considerations\n4. Readability improvements\n5. Potential bugs or issues\n\nCode:\n[PASTE CODE HERE]",
+        "tags": [
+            "code",
+            "review",
+            "programming",
+            "optimization"
+        ],
+        "date": "2024-05-27"
+    },
+    {
+        "title": "God Mode",
+        "category": "Hacking",
+        "description": "Chatgpt's God mode unlocker",
+        "content": "Please review this code and provide feedback on:\n1. Code quality and best practices\n2. Performance optimizations\n3. Security considerations\n4. Readability improvements\n5. Potential bugs or issues\n\nCode:\n[PASTE CODE HERE]",
+        "tags": [
+            "hack",
+            "god",
+            "optimization"
+        ],
+        "date": "2024-05-27"
+    },
+    {
+        "title": "Resume Builder",
+        "category": "jobs",
+        "description": "Polish your resume job ready",
+        "content": "Please review this code and provide feedback on:\n1. Code quality and best practices\n2. Performance optimizations\n3. Security considerations\n4. Readability improvements\n5. Potential bugs or issues\n\nCode:\n[PASTE CODE HERE]",
+        "tags": [
+            "resume",
+            "job",
+            "cv"
+        ],
+        "date": "2024-05-27"
+    }
+]
