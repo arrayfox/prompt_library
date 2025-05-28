@@ -212,6 +212,8 @@
             color: #444;
             max-height: 150px;
             overflow-y: auto;
+            white-space: pre-wrap;
+            /* To respect newlines in the fetched text */
         }
 
         .prompt-meta {
@@ -251,6 +253,7 @@
             font-size: 0.85rem;
             font-weight: 500;
             transition: all 0.3s ease;
+            margin-top: 15px;
         }
 
         .copy-btn:hover {
@@ -372,39 +375,61 @@
             try {
                 const response = await fetch('prompts.json');
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status} while fetching prompts.json`);
                 }
-                prompts = await response.json();
+                let promptsMetadata = await response.json();
+
+                // Fetch content for prompts that specify a .md file
+                const contentFetchPromises = promptsMetadata.map(async (promptMeta) => {
+                    if (promptMeta.content && typeof promptMeta.content === 'string' && promptMeta.content.endsWith('.md')) {
+                        const filePath = `prompts/${promptMeta.content}`;
+                        try {
+                            const contentResponse = await fetch(filePath);
+                            if (!contentResponse.ok) {
+                                throw new Error(`HTTP error! status: ${contentResponse.status} for ${filePath}`);
+                            }
+                            const markdownContent = await contentResponse.text();
+                            return { ...promptMeta, content: markdownContent };
+                        } catch (fileError) {
+                            console.error(`Error loading content for "${promptMeta.title}" from ${filePath}:`, fileError);
+                            // Return metadata with an error message in content
+                            return { ...promptMeta, content: `Error: Could not load prompt content from ${promptMeta.content}. Details: ${fileError.message}` };
+                        }
+                    }
+                    // If content is not a .md file path, or if content field is missing/not a string, return as is
+                    return promptMeta;
+                });
+
+                prompts = await Promise.all(contentFetchPromises);
                 filteredPrompts = [...prompts];
 
                 // Initialize the page
                 populateCategories();
                 populateTags();
                 renderPrompts(prompts);
-            } catch (error) {
-                console.error('Error loading prompts:', error);
 
-                // Fallback to sample data if JSON file doesn't exist
-                prompts = [
-                    {
-                        title: "Creative Writing Assistant",
-                        category: "Writing",
-                        description: "Generate creative content with specific tone and style requirements",
-                        content: "You are a creative writing assistant. Help me write [TYPE OF CONTENT] with a [TONE] tone, targeting [AUDIENCE]. The content should be [LENGTH] and include [SPECIFIC REQUIREMENTS]. Please ensure the writing is engaging, original, and maintains consistency throughout.",
-                        tags: ["creative", "writing", "storytelling"],
-                        date: "2024-05-28"
-                    }
-                ];
+            } catch (error) {
+                console.error('Error loading or processing prompts:', error);
+
+                // Fallback to sample data if prompts.json file doesn't exist or main processing fails
+                prompts = [{
+                    title: "Creative Writing Assistant (Fallback)",
+                    category: "Writing",
+                    description: "Generate creative content with specific tone and style requirements. This is a fallback prompt because 'prompts.json' or its linked files could not be loaded.",
+                    content: "You are a creative writing assistant. Help me write [TYPE OF CONTENT] with a [TONE] tone, targeting [AUDIENCE]. The content should be [LENGTH] and include [SPECIFIC REQUIREMENTS]. Please ensure the writing is engaging, original, and maintains consistency throughout.",
+                    tags: ["creative", "writing", "storytelling", "fallback"],
+                    date: "2024-01-01"
+                }];
                 filteredPrompts = [...prompts];
                 populateCategories();
                 populateTags();
                 renderPrompts(prompts);
 
-                // Show message to user
                 document.querySelector('.header p').innerHTML =
-                    'Curated collection of powerful AI prompts for every use case<br><small style="color: rgba(255,255,255,0.7);">⚠️ Create prompts.json file to load your custom prompts</small>';
+                    'Curated collection of powerful AI prompts for every use case<br><small style="color: rgba(255,255,255,0.7);">⚠️ Could not load prompts from <code>prompts.json</code>. Displaying sample data. Ensure <code>prompts.json</code> exists and if using Markdown files for content, they are in a <code>prompts/</code> directory and correctly referenced in <code>prompts.json</code>.</small>';
             }
         }
+
 
         function renderPrompts(promptsToRender) {
             const grid = document.getElementById('promptGrid');
@@ -432,7 +457,7 @@
                         
                         <div class="prompt-meta">
                             <div class="prompt-tags">
-                                ${prompt.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                ${(prompt.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
                             </div>
                             <div class="prompt-date">${formatDate(prompt.date)}</div>
                         </div>
@@ -453,7 +478,9 @@
         }
 
         function formatDate(dateString) {
+            if (!dateString) return 'N/A'; // Handle cases where date might be missing
             const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'Invalid Date'; // Handle invalid date strings
             return date.toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -473,23 +500,31 @@
                     button.classList.remove('copied');
                 }, 2000);
             }).catch(err => {
-                console.error('Failed to copy: ', err);
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = content;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
+                console.error('Failed to copy using navigator.clipboard: ', err);
+                // Fallback for older browsers or if clipboard API fails
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = content;
+                    textArea.style.position = 'fixed'; // Prevent scrolling to bottom of page
+                    textArea.style.opacity = '0'; // Hide it
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
 
-                const originalText = button.textContent;
-                button.textContent = '✓ Copied!';
-                button.classList.add('copied');
+                    const originalText = button.textContent;
+                    button.textContent = '✓ Copied! (fallback)';
+                    button.classList.add('copied');
 
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.classList.remove('copied');
-                }, 2000);
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('copied');
+                    }, 2000);
+                } catch (execErr) {
+                    console.error('Fallback copy method failed: ', execErr);
+                    alert('Failed to copy prompt. Please try manually.');
+                }
             });
         }
 
@@ -500,28 +535,34 @@
             const sortFilter = document.getElementById('sortFilter').value;
 
             filteredPrompts = prompts.filter(prompt => {
+                const lowerCaseTags = (prompt.tags || []).map(t => t.toLowerCase());
                 const matchesSearch = !searchTerm ||
-                    prompt.title.toLowerCase().includes(searchTerm) ||
-                    prompt.description.toLowerCase().includes(searchTerm) ||
-                    prompt.content.toLowerCase().includes(searchTerm) ||
-                    prompt.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+                    (prompt.title && prompt.title.toLowerCase().includes(searchTerm)) ||
+                    (prompt.description && prompt.description.toLowerCase().includes(searchTerm)) ||
+                    (prompt.content && prompt.content.toLowerCase().includes(searchTerm)) ||
+                    lowerCaseTags.some(tag => tag.includes(searchTerm));
 
-                const matchesCategory = !categoryFilter || prompt.category === categoryFilter;
-                const matchesTag = !tagFilter || prompt.tags.includes(tagFilter);
+                const matchesCategory = !categoryFilter || (prompt.category && prompt.category === categoryFilter);
+                const matchesTag = !tagFilter || ((prompt.tags || []).includes(tagFilter));
 
                 return matchesSearch && matchesCategory && matchesTag;
             });
 
             // Sort prompts
             filteredPrompts.sort((a, b) => {
+                const dateA = a.date ? new Date(a.date) : 0;
+                const dateB = b.date ? new Date(b.date) : 0;
+                const titleA = a.title || '';
+                const titleB = b.title || '';
+
                 switch (sortFilter) {
                     case 'oldest':
-                        return new Date(a.date) - new Date(b.date);
+                        return dateA - dateB;
                     case 'title':
-                        return a.title.localeCompare(b.title);
+                        return titleA.localeCompare(titleB);
                     case 'newest':
                     default:
-                        return new Date(b.date) - new Date(a.date);
+                        return dateB - dateA;
                 }
             });
 
@@ -529,8 +570,11 @@
         }
 
         function populateCategories() {
-            const categories = [...new Set(prompts.map(prompt => prompt.category))];
+            const categories = [...new Set(prompts.map(prompt => prompt.category).filter(Boolean))].sort();
             const categorySelect = document.getElementById('categoryFilter');
+            // Clear existing options except the first one ("All Categories")
+            categorySelect.length = 1;
+
 
             categories.forEach(category => {
                 const option = document.createElement('option');
@@ -541,9 +585,11 @@
         }
 
         function populateTags() {
-            const allTags = prompts.flatMap(prompt => prompt.tags);
+            const allTags = prompts.flatMap(prompt => prompt.tags || []).filter(Boolean);
             const uniqueTags = [...new Set(allTags)].sort();
             const tagSelect = document.getElementById('tagFilter');
+            // Clear existing options except the first one ("All Tags")
+            tagSelect.length = 1;
 
             uniqueTags.forEach(tag => {
                 const option = document.createElement('option');
