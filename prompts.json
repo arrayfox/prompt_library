@@ -1,5 +1,57 @@
 [
     {
+        "title": "Text  to image tool",
+        "category": "Tool",
+        "description": "To generate an image without having it change the prompt",
+        "content": "text2im.md",
+        "tags": [
+            "Image"
+        ],
+        "date": "2025-06-07"
+    },
+    {
+        "title": "Generate a full PowerPoint presentation",
+        "category": "Tool",
+        "description": "Its for generating a structured PowerPoint presentation outline",
+        "content": "powerpoint.md",
+        "tags": [
+            "ppt"
+        ],
+        "date": "2025-06-07"
+    },
+    {
+        "title": "Stop Over flattering",
+        "category": "Tool",
+        "description": "To stop being an overly flattering yes man",
+        "content": "stop-over-flattering.md",
+        "tags": [
+            "text",
+            "refine"
+        ],
+        "date": "2025-06-07"
+    },
+    {
+        "title": "Ask me questions to further clarify",
+        "category": "Tool",
+        "description": "Ask questions to refine the prompt and output",
+        "content": "further-clarify.md",
+        "tags": [
+            "text",
+            "refine"
+        ],
+        "date": "2025-06-07"
+    },
+    {
+        "title": "Strategic Advisor",
+        "category": "Advise",
+        "description": "Act as a personal strategic advisor",
+        "content": "strategic-advisor.md",
+        "tags": [
+            "advisor"
+        ],
+        "date": "2025-06-07"
+    },
+    {
         "title": "Text Humanizer",
         "category": "Tool",
         "description": "Refine your writing to create authentic, concise content that resonates with its intended readers.",
